@@ -28,8 +28,7 @@ jobs:
           paths-ignore: |-
             .*\.gif$
             .*\.ico$
-            .*\.jpeg$
-            .*\.jpg$
+            .*\.jpe?g$
             .*\.png$
             .*\.svg$
             .*\.webp$
