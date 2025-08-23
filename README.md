@@ -17,7 +17,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: hakadoriya-actions/final-newline-checker@v0.0.1
+      - uses: hakadoriya-actions/final-newline-checker@v0.0.3
         id: final-newline-checker
         with:
           # NOTE: If you want to fail on missing final newline, set this to true
@@ -33,24 +33,4 @@ jobs:
             .*\.png$
             .*\.svg$
             .*\.webp$
-      - uses: hakadoriya-actions/setup-gh-xz@v0.0.1
-      - name: Submit PR comment if missing final newline
-        if: ${{ steps.final-newline-checker.outputs.missing == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Create comment body
-          cat <<EOF | perl -pe 's/\\n/\n/g' | tee /tmp/gh-pr-comment-body.md
-          ## 🚨 Missing final newline
-
-          The following files are missing final newline.
-
-          \`\`\`
-          ${{ steps.final-newline-checker.outputs.missing-files }}
-          \`\`\`
-          EOF
-          # Submit PR comment
-          gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker @/tmp/gh-pr-comment-body.md
-          # fail the workflow
-          exit 1
 ```
