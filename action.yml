@@ -71,7 +71,7 @@ runs:
   using: composite
   steps:
     - if: ${{ inputs.skip-checkout != 'true' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     - if: ${{ inputs.skip-comment != 'true' }}
