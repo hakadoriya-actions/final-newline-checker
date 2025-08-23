@@ -195,7 +195,7 @@ runs:
             cat <<EOF | perl -pe 's/\\n/\n/g' | tee /tmp/gh-pr-comment-body.md
         ## 🚨 final-newline-checker
 
-        The following files are missing final newline.
+        The following files in diff are missing final newline.
 
         \`\`\`
         ${missing_files:?}
@@ -204,7 +204,7 @@ runs:
             # Submit PR comment
             gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker @/tmp/gh-pr-comment-body.md
           else
-            gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker "$(printf "## ✅ final-newline-checker\n\nNo missing final newline files.")"
+            gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker "$(printf "## ✅ final-newline-checker\n\nNo missing final newline files in diff.")"
           fi
         else
           LogshInfo "Skipping post a comment to the pull request"
