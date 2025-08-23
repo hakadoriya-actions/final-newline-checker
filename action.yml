@@ -19,14 +19,18 @@ inputs:
     description: 'A list of substrings of file paths to ignore written in regular expressions (like on.push.paths-ignore)'
     required: false
     default: ''  # empty string
-  fail-on-missing:
-    description: 'Fail on missing final newline'
-    required: false
-    default: 'false'
   skip-checkout:
     description: 'If true, skip the checkout step'
     required: false
     default: 'false'
+  skip-comment:
+    description: 'If true, skip posting a comment to the pull request'
+    required: false
+    default: 'false'
+  fail-on-missing:
+    description: 'Fail on missing final newline'
+    required: false
+    default: 'true'
   debug:
     description: 'Debug mode'
     required: false
@@ -70,11 +74,14 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - if: ${{ inputs.skip-comment != 'true' }}
+      uses: hakadoriya-actions/setup-gh-xz@v0.0.1
     - name: final-newline-checker
       id: missing-final-newline
       shell: 'bash'
       env:
         LOGSH_COLOR: 'true'
+        GH_TOKEN: ${{ github.token }}
       run: |
         # LICENSE: https://github.com/hakadoriya/log.sh/blob/HEAD/LICENSE
         # Common
@@ -179,6 +186,28 @@ runs:
           LogshInfo "No missing final newline files"
           LogshExec echo "missing=false" >> $GITHUB_OUTPUT
           LogshExec echo "missing-files=" >> $GITHUB_OUTPUT
+        fi
+
+        if [[ "${{ inputs.skip-comment }}" != 'true' ]] && [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+          LogshInfo "Post a comment to the pull request"
+          if [[ -n "${missing_files:-}" ]]; then
+            # Create comment body
+            cat <<EOF | perl -pe 's/\\n/\n/g' | tee /tmp/gh-pr-comment-body.md
+        ## 🚨 final-newline-checker
+
+        The following files are missing final newline.
+
+        \`\`\`
+        ${missing_files:?}
+        \`\`\`
+        EOF
+            # Submit PR comment
+            gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker @/tmp/gh-pr-comment-body.md
+          else
+            gh xz put-anchored-comment ${{ github.repository }} ${{ github.event.number }} anchor:final-newline-checker "$(printf "## ✅ final-newline-checker\n\nNo missing final newline files.")"
+          fi
+        else
+          LogshInfo "Skipping post a comment to the pull request"
         fi
 
         if [[ "${{ inputs.fail-on-missing }}" == 'true' ]] && [[ -n "${missing_files:-}" ]]; then
